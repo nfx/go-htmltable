@@ -34,8 +34,6 @@ fmt.Println(out[0].Security)
 An error would be thrown if there's no matching page with the specified columns:
 
 ```go
-import "github.com/nfx/go-htmltable"
-
 page, _ := htmltable.NewFromURL("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")
 _, err := page.FindWithColumns("invalid", "column", "names")
 fmt.Println(err)
@@ -47,8 +45,6 @@ fmt.Println(err)
 And you can use more low-level API to work with extracted data:
 
 ```go
-import "github.com/nfx/go-htmltable"
-
 page, _ := htmltable.NewFromString(`<body>
     <h1>foo</h2>
     <table>
@@ -79,8 +75,6 @@ _ = page.Each2("c", "d", func(c, d string) error {
 And the last note: you're encouraged to plug your own structured logger:
 
 ```go
-import "github.com/nfx/go-htmltable"
-
 htmltable.Logger = func(_ context.Context, msg string, fields ...any) {
     fmt.Printf("[INFO] %s %v\n", msg, fields)
 }
