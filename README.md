@@ -1,8 +1,10 @@
 # HTML table data extractor for Go
 
-[![GoDoc](https://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](https://pkg.go.dev/mod/github.com/nfx/go-htmltable)
+[![GoDoc](https://img.shields.io/badge/go-documentation-blue.svg)](https://pkg.go.dev/mod/github.com/nfx/go-htmltable)
+[![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/nfx/go-htmltable/blob/main/LICENSE)
 [![codecov](https://codecov.io/gh/nfx/go-htmltable/branch/main/graph/badge.svg)](https://codecov.io/gh/nfx/go-htmltable)
-[![GitHub Actions](https://img.shields.io/github/workflow/status/nfx/go-htmltable/unit/main?style=flat-square)](https://github.com/nfx/go-htmltable/actions?query=branch%3Amain+-event%3Aschedule)
+[![build](https://github.com/nfx/go-htmltable/workflows/build/badge.svg?branch=main)](https://github.com/nfx/go-htmltable/actions?query=workflow%3Abuild+branch%3Amain)
+
 
 `htmltable` enables structured data extraction from HTML tables and URLs and requires almost no external dependencies.
 
