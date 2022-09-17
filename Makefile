@@ -7,9 +7,9 @@ vendor:
 	go mod vendor
 
 test:
-	go test ./... -coverprofile=./vendor/coverage.txt -timeout=30s
+	go test ./... -coverprofile=coverage.out -timeout=10s
 
 coverage: test
-	go tool cover -html=./vendor/coverage.txt
+	go tool cover -html=coverage.out
 
 .PHONY: build fmt coverage test vendor
