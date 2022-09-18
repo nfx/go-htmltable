@@ -32,7 +32,7 @@ func assertEqual(t *testing.T, a, b any) {
 }
 
 type comparable interface {
-    int | string
+	int | string
 }
 
 func assertGreaterOrEqual[T comparable](t *testing.T, a, b T) {

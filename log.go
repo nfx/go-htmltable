@@ -12,7 +12,7 @@ import (
 var Logger = func(_ context.Context, msg string, fields ...any) {
 	var sb strings.Builder
 	sb.WriteString(msg)
-	if len(fields) % 2 != 0 {
+	if len(fields)%2 != 0 {
 		panic(fmt.Errorf("number of logged fields is not even"))
 	}
 	for i := 0; i < len(fields); i += 2 {

@@ -18,7 +18,7 @@ func ExampleNewSliceFromUrl() {
 	fmt.Println(out[0].Symbol)
 	fmt.Println(out[0].Security)
 
-	// Output: 
+	// Output:
 	// MMM
 	// 3M
 }
@@ -45,7 +45,7 @@ func ExampleNewFromString() {
 		return nil
 	})
 
-	// Output: 
+	// Output:
 	// found 2 tables
 	// c:2 d:5
 	// c:4 d:6
@@ -56,7 +56,7 @@ func ExampleNewFromURL() {
 	_, err := page.FindWithColumns("invalid", "column", "names")
 	fmt.Println(err)
 
-	// Output: 
+	// Output:
 	// cannot find table with columns: invalid, column, names
 }
 

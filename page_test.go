@@ -72,8 +72,8 @@ func TestFindsWithColspans(t *testing.T) {
 	p, err := NewFromString(fixtureColspans)
 	assertNoError(t, err)
 	assertEqual(t, p.Len(), 1)
-	assertEqual(t, "Added Ticker", p.tables[0].header[1])
-	assertEqual(t, "Market capitalization change.[4]", p.tables[0].rows[0][5])
+	assertEqual(t, "Added Ticker", p.Tables[0].Header[1])
+	assertEqual(t, "Market capitalization change.[4]", p.Tables[0].Rows[0][5])
 }
 
 func TestInitFails(t *testing.T) {
@@ -110,7 +110,7 @@ func TestRealPageFound(t *testing.T) {
 	assertNoError(t, err)
 	snp, err := p.FindWithColumns("Symbol", "Security", "CIK")
 	assertNoError(t, err)
-	assertGreaterOrEqual(t, len(snp.rows), 500)
+	assertGreaterOrEqual(t, len(snp.Rows), 500)
 }
 
 func TestRealPageFound_BasicRowColSpans(t *testing.T) {
@@ -120,7 +120,7 @@ func TestRealPageFound_BasicRowColSpans(t *testing.T) {
 	assertNoError(t, err)
 	snp, err := p.FindWithColumns("Date", "Added Ticker", "Removed Ticker")
 	assertNoError(t, err)
-	assertGreaterOrEqual(t, len(snp.rows), 250)
+	assertGreaterOrEqual(t, len(snp.Rows), 250)
 }
 
 func TestFindsTableByColumnNames(t *testing.T) {
@@ -129,7 +129,7 @@ func TestFindsTableByColumnNames(t *testing.T) {
 
 	cd, err := p.FindWithColumns("c", "d")
 	assertNoError(t, err)
-	assertEqual(t, 2, len(cd.rows))
+	assertEqual(t, 2, len(cd.Rows))
 }
 
 func TestEach(t *testing.T) {
@@ -233,6 +233,6 @@ func TestNoTablesFoundErrors(t *testing.T) {
 }
 
 func TestNilNodeReturns(t *testing.T) {
-	p := &page{}
+	p := &Page{}
 	p.parse(nil)
 }

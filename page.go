@@ -17,66 +17,66 @@ var htmlParse = html.Parse
 
 var maxPossibleHeaderRows = 5
 
-type page struct {
-	tables        []*tableData
-	StartHeaderAt int
-	ctx           context.Context
-	rowSpans      []int
-	colSpans      []int
-	row           []string
-	rows          [][]string
+// Page is the container for all tables parseable
+type Page struct {
+	Tables []*Table
+
+	ctx      context.Context
+	rowSpans []int
+	colSpans []int
+	row      []string
+	rows     [][]string
 }
 
 // New returns an instance of the page with possibly more than one table
-func New(ctx context.Context, r io.Reader) (*page, error) {
-	p := &page{
-		ctx: ctx,
-	}
-	err := p.init(r)
-	return p, err
+func New(ctx context.Context, r io.Reader) (*Page, error) {
+	p := &Page{ctx: ctx}
+	return p, p.init(r)
 }
 
 // NewFromString is same as New(ctx.Context, io.Reader), but from string
-func NewFromString(r string) (*page, error) {
+func NewFromString(r string) (*Page, error) {
 	return New(context.Background(), strings.NewReader(r))
 }
 
 // NewFromResponse is same as New(ctx.Context, io.Reader), but from http.Response.
 //
 // In case of failure, returns `ResponseError`, that could be further inspected.
-func NewFromResponse(resp *http.Response) (*page, error) {
+func NewFromResponse(resp *http.Response) (*Page, error) {
 	p, err := New(resp.Request.Context(), resp.Body)
 	if err != nil {
-		// wrap error with http response
-		err = &ResponseError{resp, err}
+		return nil, err
 	}
-	return p, err
+	return p, nil
 }
 
 // NewFromURL is same as New(ctx.Context, io.Reader), but from URL.
 //
 // In case of failure, returns `ResponseError`, that could be further inspected.
-func NewFromURL(url string) (*page, error) {
+func NewFromURL(url string) (*Page, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
+	}
+	if resp.Body != nil {
+		defer resp.Body.Close()
 	}
 	return NewFromResponse(resp)
 }
 
 // Len returns number of tables found on the page
-func (p *page) Len() int {
-	return len(p.tables)
+func (p *Page) Len() int {
+	return len(p.Tables)
 }
 
 // FindWithColumns performs fuzzy matching of tables by given header column names
-func (p *page) FindWithColumns(columns ...string) (*tableData, error) {
+func (p *Page) FindWithColumns(columns ...string) (*Table, error) {
 	// realistic p won't have this much
 	found := 0xfffffff
-	for idx, table := range p.tables {
+	for idx, table := range p.Tables {
 		matchedColumns := 0
 		for _, col := range columns {
-			for _, header := range table.header {
+			for _, header := range table.Header {
 				if col == header {
 					// perform fuzzy matching of table headers
 					matchedColumns++
@@ -86,35 +86,35 @@ func (p *page) FindWithColumns(columns ...string) (*tableData, error) {
 		if matchedColumns != len(columns) {
 			continue
 		}
-		if found < len(p.tables) {
+		if found < len(p.Tables) {
 			// and do a best-effort error message, that is cleaner than pandas.read_html
 			return nil, fmt.Errorf("more than one table matches columns `%s`: "+
 				"[%d] %s and [%d] %s", strings.Join(columns, ", "),
-				found, p.tables[found], idx, p.tables[idx])
+				found, p.Tables[found], idx, p.Tables[idx])
 		}
 		found = idx
 	}
-	if found > len(p.tables) {
+	if found > len(p.Tables) {
 		return nil, fmt.Errorf("cannot find table with columns: %s",
 			strings.Join(columns, ", "))
 	}
-	return p.tables[found], nil
+	return p.Tables[found], nil
 }
 
 // Each row would call func with the value of the table cell from the column
 // specified in the first argument.
 //
 // Returns an error if table has no matching column name.
-func (p *page) Each(a string, f func(a string) error) error {
+func (p *Page) Each(a string, f func(a string) error) error {
 	table, err := p.FindWithColumns(a)
 	if err != nil {
 		return err
 	}
 	offsets := map[string]int{}
-	for idx, header := range table.header {
+	for idx, header := range table.Header {
 		offsets[header] = idx
 	}
-	for idx, row := range table.rows {
+	for idx, row := range table.Rows {
 		err = f(row[offsets[a]])
 		if err != nil {
 			return fmt.Errorf("row %d: %w", idx, err)
@@ -127,17 +127,17 @@ func (p *page) Each(a string, f func(a string) error) error {
 // and call the func with those values for every row in the table.
 //
 // Returns an error if table has no matching column names.
-func (p *page) Each2(a, b string, f func(a, b string) error) error {
+func (p *Page) Each2(a, b string, f func(a, b string) error) error {
 	table, err := p.FindWithColumns(a, b)
 	if err != nil {
 		return err
 	}
 	offsets := map[string]int{}
-	for idx, header := range table.header {
+	for idx, header := range table.Header {
 		offsets[header] = idx
 	}
 	_1, _2 := offsets[a], offsets[b]
-	for idx, row := range table.rows {
+	for idx, row := range table.Rows {
 		err = f(row[_1], row[_2])
 		if err != nil {
 			return fmt.Errorf("row %d: %w", idx, err)
@@ -150,17 +150,17 @@ func (p *page) Each2(a, b string, f func(a, b string) error) error {
 // and call the func with those values for every row in the table.
 //
 // Returns an error if table has no matching column names.
-func (p *page) Each3(a, b, c string, f func(a, b, c string) error) error {
+func (p *Page) Each3(a, b, c string, f func(a, b, c string) error) error {
 	table, err := p.FindWithColumns(a, b, c)
 	if err != nil {
 		return err
 	}
 	offsets := map[string]int{}
-	for idx, header := range table.header {
+	for idx, header := range table.Header {
 		offsets[header] = idx
 	}
 	_1, _2, _3 := offsets[a], offsets[b], offsets[c]
-	for idx, row := range table.rows {
+	for idx, row := range table.Rows {
 		err = f(row[_1], row[_2], row[_3])
 		if err != nil {
 			return fmt.Errorf("row %d: %w", idx, err)
@@ -169,7 +169,7 @@ func (p *page) Each3(a, b, c string, f func(a, b, c string) error) error {
 	return nil
 }
 
-func (p *page) init(r io.Reader) error {
+func (p *Page) init(r io.Reader) error {
 	root, err := htmlParse(r)
 	if err != nil {
 		return err
@@ -179,7 +179,7 @@ func (p *page) init(r io.Reader) error {
 	return nil
 }
 
-func (p *page) parse(n *html.Node) {
+func (p *Page) parse(n *html.Node) {
 	if n == nil {
 		return
 	}
@@ -214,7 +214,7 @@ func (p *page) parse(n *html.Node) {
 	}
 }
 
-func (p *page) intAttrOr(n *html.Node, attr string, default_ int) int {
+func (p *Page) intAttrOr(n *html.Node, attr string, default_ int) int {
 	for _, a := range n.Attr {
 		if a.Key != attr {
 			continue
@@ -228,7 +228,7 @@ func (p *page) intAttrOr(n *html.Node, attr string, default_ int) int {
 	return default_
 }
 
-func (p *page) finishRow() {
+func (p *Page) finishRow() {
 	if len(p.row) == 0 {
 		return
 	}
@@ -236,7 +236,7 @@ func (p *page) finishRow() {
 	p.row = []string{}
 }
 
-func (p *page) finishTable() {
+func (p *Page) finishTable() {
 	p.finishRow()
 	if len(p.rows) == 0 {
 		return
@@ -274,16 +274,16 @@ func (p *page) finishTable() {
 		dataOffset += 1
 	}
 	Logger(p.ctx, "found table", "columns", header, "count", len(p.rows))
-	p.tables = append(p.tables, &tableData{
-		header: header,
-		rows:   p.rows[dataOffset:],
+	p.Tables = append(p.Tables, &Table{
+		Header: header,
+		Rows:   p.rows[dataOffset:],
 	})
 	p.rows = [][]string{}
 	p.colSpans = []int{}
 	p.rowSpans = []int{}
 }
 
-func (p *page) innerText(n *html.Node, sb *strings.Builder) {
+func (p *Page) innerText(n *html.Node, sb *strings.Builder) {
 	if n.Type == html.TextNode {
 		sb.WriteString(strings.TrimSpace(n.Data))
 		return
@@ -296,20 +296,17 @@ func (p *page) innerText(n *html.Node, sb *strings.Builder) {
 	}
 }
 
-type ResponseError struct {
-	Response *http.Response
-	Inner    error
+// Table is the low-level representation of raw header and rows.
+//
+// Every cell string value is truncated of its whitespace.
+type Table struct {
+	// Header holds names of headers
+	Header []string
+
+	// Rows holds slice of string slices
+	Rows [][]string
 }
 
-func (re *ResponseError) Error() string {
-	return re.Inner.Error()
-}
-
-type tableData struct {
-	header []string
-	rows   [][]string
-}
-
-func (table *tableData) String() string {
-	return fmt.Sprintf("Table[%s] (%d rows)", strings.Join(table.header, ", "), len(table.rows))
+func (table *Table) String() string {
+	return fmt.Sprintf("Table[%s] (%d rows)", strings.Join(table.Header, ", "), len(table.Rows))
 }

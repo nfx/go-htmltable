@@ -8,13 +8,17 @@
 
 `htmltable` enables structured data extraction from HTML tables and URLs and requires almost no external dependencies.
 
+## Installation
+
+```bash
+
+```
+
 ## Usage
 
 You can retrieve a slice of `header`-annotated types using the `NewSlice*` contructors:
 
 ```go
-import "github.com/nfx/go-htmltable"
-
 type Ticker struct {
     Symbol   string `header:"Symbol"`
     Security string `header:"Security"`
