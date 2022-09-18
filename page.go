@@ -115,6 +115,9 @@ func (p *Page) Each(a string, f func(a string) error) error {
 		offsets[header] = idx
 	}
 	for idx, row := range table.Rows {
+		if len(row) < 1 {
+			continue
+		}
 		err = f(row[offsets[a]])
 		if err != nil {
 			return fmt.Errorf("row %d: %w", idx, err)
@@ -138,6 +141,9 @@ func (p *Page) Each2(a, b string, f func(a, b string) error) error {
 	}
 	_1, _2 := offsets[a], offsets[b]
 	for idx, row := range table.Rows {
+		if len(row) < 2 {
+			continue
+		}
 		err = f(row[_1], row[_2])
 		if err != nil {
 			return fmt.Errorf("row %d: %w", idx, err)
@@ -161,6 +167,9 @@ func (p *Page) Each3(a, b, c string, f func(a, b, c string) error) error {
 	}
 	_1, _2, _3 := offsets[a], offsets[b], offsets[c]
 	for idx, row := range table.Rows {
+		if len(row) < 3 {
+			continue
+		}
 		err = f(row[_1], row[_2], row[_3])
 		if err != nil {
 			return fmt.Errorf("row %d: %w", idx, err)
