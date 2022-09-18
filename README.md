@@ -6,15 +6,19 @@
 [![build](https://github.com/nfx/go-htmltable/workflows/build/badge.svg?branch=main)](https://github.com/nfx/go-htmltable/actions?query=workflow%3Abuild+branch%3Amain)
 
 
-`htmltable` enables structured data extraction from HTML tables and URLs and requires almost no external dependencies.
+`htmltable` enables structured data extraction from HTML tables and URLs and requires almost no external dependencies. Tested with Go 1.18.x and 1.19.x.
+
+## Installation
+
+```bash
+go get github.com/nfx/go-htmltable
+```
 
 ## Usage
 
 You can retrieve a slice of `header`-annotated types using the `NewSlice*` contructors:
 
 ```go
-import "github.com/nfx/go-htmltable"
-
 type Ticker struct {
     Symbol   string `header:"Symbol"`
     Security string `header:"Security"`

@@ -14,7 +14,7 @@ func TestLoggerNoFields(t *testing.T) {
 }
 
 func TestLoggerWrongFields(t *testing.T) {
-	defer func(){
+	defer func() {
 		p := recover()
 		if p == nil {
 			t.Fatalf("there must be panic")

@@ -12,7 +12,7 @@ import (
 // NewSlice returns slice of annotated struct types from io.Reader
 func NewSlice[T any](ctx context.Context, r io.Reader) ([]T, error) {
 	f := &feeder[T]{
-		page: page{ctx: ctx},
+		Page: Page{ctx: ctx},
 	}
 	f.init(r)
 	return f.slice()
@@ -27,12 +27,7 @@ func NewSliceFromString[T any](in string) ([]T, error) {
 // NewSliceFromString is same as NewSlice(context.Context, io.Reader),
 // but takes just an http.Response
 func NewSliceFromResponse[T any](resp *http.Response) ([]T, error) {
-	out, err := NewSlice[T](resp.Request.Context(), resp.Body)
-	if err != nil {
-		// wrap error with http response
-		return nil, &ResponseError{resp, err}
-	}
-	return out, nil
+	return NewSlice[T](resp.Request.Context(), resp.Body)
 }
 
 // NewSliceFromString is same as NewSlice(context.Context, io.Reader),
@@ -42,11 +37,15 @@ func NewSliceFromURL[T any](url string) ([]T, error) {
 	if err != nil {
 		return nil, err
 	}
+	if resp.Body != nil {
+		defer resp.Body.Close()
+	}
 	return NewSliceFromResponse[T](resp)
 }
 
 type feeder[T any] struct {
-	page
+	Page
+
 	dummy T
 }
 
@@ -71,7 +70,7 @@ func (f *feeder[T]) headers() ([]string, map[string]int, error) {
 	return headers, fields, nil
 }
 
-func (f *feeder[T]) table() (*tableData, map[int]int, error) {
+func (f *feeder[T]) table() (*Table, map[int]int, error) {
 	headers, fields, err := f.headers()
 	if err != nil {
 		return nil, nil, err
@@ -81,7 +80,7 @@ func (f *feeder[T]) table() (*tableData, map[int]int, error) {
 		return nil, nil, err
 	}
 	mapping := map[int]int{}
-	for idx, header := range table.header {
+	for idx, header := range table.Header {
 		field, ok := fields[header]
 		if !ok {
 			continue
@@ -99,8 +98,8 @@ func (f *feeder[T]) slice() ([]T, error) {
 	dummy := reflect.ValueOf(f.dummy)
 	dt := dummy.Type()
 	sliceValue := reflect.MakeSlice(reflect.SliceOf(dt),
-		len(table.rows), len(table.rows))
-	for rowIdx, row := range table.rows {
+		len(table.Rows), len(table.Rows))
+	for rowIdx, row := range table.Rows {
 		item := sliceValue.Index(rowIdx)
 		for idx, field := range mapping {
 			// remember, we work only with strings now
