@@ -15,8 +15,6 @@ import (
 // mock for tests
 var htmlParse = html.Parse
 
-var maxPossibleHeaderRows = 5
-
 // Page is the container for all tables parseable
 type Page struct {
 	Tables []*Table
@@ -26,6 +24,14 @@ type Page struct {
 	colSpans []int
 	row      []string
 	rows     [][]string
+	maxCols  int
+
+	// current row
+	colSpan []int
+	rowSpan []int
+	// all
+	cSpans [][]int
+	rSpans [][]int
 }
 
 // New returns an instance of the page with possibly more than one table
@@ -194,21 +200,8 @@ func (p *Page) parse(n *html.Node) {
 	}
 	switch n.Data {
 	case "td", "th":
-		if len(p.rows) <= maxPossibleHeaderRows {
-			offset := len(p.row)
-			if len(p.colSpans) < offset+1 {
-				p.colSpans = append(p.colSpans, 1)
-				p.rowSpans = append(p.rowSpans, 1)
-			}
-			colSpan := p.intAttrOr(n, "colspan", 1)
-			if colSpan > p.colSpans[offset] {
-				p.colSpans[offset] = colSpan
-			}
-			rowSpan := p.intAttrOr(n, "rowspan", 1)
-			if rowSpan > p.rowSpans[offset] {
-				p.rowSpans[offset] = rowSpan
-			}
-		}
+		p.colSpan = append(p.colSpan, p.intAttrOr(n, "colspan", 1))
+		p.rowSpan = append(p.rowSpan, p.intAttrOr(n, "rowspan", 1))
 		var sb strings.Builder
 		p.innerText(n, &sb)
 		p.row = append(p.row, sb.String())
@@ -241,55 +234,107 @@ func (p *Page) finishRow() {
 	if len(p.row) == 0 {
 		return
 	}
-	p.rows = append(p.rows, p.row[:])
+	if len(p.row) > p.maxCols {
+		p.maxCols = len(p.row)
+	}
+	p.rows = append(p.rows, p.row)
+	p.cSpans = append(p.cSpans, p.colSpan)
+	p.rSpans = append(p.rSpans, p.rowSpan)
 	p.row = []string{}
+	p.colSpan = []int{}
+	p.rowSpan = []int{}
 }
 
 func (p *Page) finishTable() {
+	defer func() {
+		if r := recover(); r != nil {
+			Logger(p.ctx, "unparsable table", "panic", fmt.Sprintf("%v", r))
+		}
+		p.rows = [][]string{}
+		p.colSpans = []int{}
+		p.rowSpans = []int{}
+		p.cSpans = [][]int{}
+		p.rSpans = [][]int{}
+		p.maxCols = 0
+	}()
 	p.finishRow()
 	if len(p.rows) == 0 {
 		return
 	}
-	maxRowSpan := 1
-	for _, span := range p.rowSpans {
-		if span > maxRowSpan {
-			maxRowSpan = span
-		}
-	}
-	dataOffset := 1
-	header := p.rows[0]
-	if maxRowSpan > 1 {
-		// only supports 2 for now
-		newHeader := []string{}
-		si := 0
-		for i, text := range p.rows[0] { // initial header
-			if p.rowSpans[i] == 2 {
-				newHeader = append(newHeader, text)
+
+	rows := [][]string{}
+	rowSpanReset := make([]int, p.maxCols*2)
+	rowSpanBuffer := make([]int, p.maxCols*2)
+	rowSkips := 0
+	gotHeader := false
+
+ROWS:
+	for r := 0; r < len(p.rows); r++ { // rows cols addressable by c
+		currentRow := []string{}
+		skipRow := false
+		k := 0 // next row columns
+		j := 0 // p.rows cols addressable by j
+		for c := 0; c < p.maxCols; c++ {
+			if rowSpanReset[c] == r {
+				rowSpanReset[c] = -1
+				rowSpanBuffer[c] = -1
+			}
+			if rowSpanBuffer[c] > 0 {
+				fromRow := rowSpanBuffer[c]
+				currentRow = append(currentRow, rows[fromRow][c])
 				continue
 			}
-			if p.colSpans[i] > 1 {
-				ci := 0
-				for ci < p.colSpans[i] {
-					newHeader = append(newHeader, text+" "+p.rows[1][si+ci])
-					ci++
+			if len(p.rows[r]) == 1 && p.cSpans[r][j] == p.maxCols {
+				// this are most likely empty rows or table dividers
+				rowSkips++
+				continue ROWS
+			}
+			if len(p.rSpans[r]) == j {
+				break
+			}
+			rowSpan := p.rSpans[r][j]
+			if rowSpan > 1 {
+				rowSpanBuffer[c] = r - rowSkips
+				rowSpanReset[c] = r + rowSpan
+			}
+			value := p.rows[r][j]
+			colSpan := p.cSpans[r][j]
+			if colSpan > 1 { // in header: merge, in row - duplicate
+				if !gotHeader {
+					skipRow = true
+					for q := 0; q < colSpan; q++ {
+						nextValue := fmt.Sprintf("%s %s", value, p.rows[r+1][k])
+						currentRow = append(currentRow, nextValue)
+						k++
+					}
+				} else {
+					for q := 0; q < colSpan; q++ {
+						currentRow = append(currentRow, value)
+						// c++
+						// j++
+					}
 				}
-				// store last pos of col
-				si = si + ci
-				continue
+			} else {
+				currentRow = append(currentRow, value)
 			}
-			newHeader = append(newHeader, text) // TODO: add coverage
+			j++
 		}
-		header = newHeader
-		dataOffset += 1
+		if skipRow {
+			rowSkips++
+			r++
+		}
+		gotHeader = true
+		if len(currentRow) > p.maxCols {
+			p.maxCols = len(currentRow)
+		}
+		rows = append(rows, currentRow)
 	}
+	header := p.rows[0]
 	Logger(p.ctx, "found table", "columns", header, "count", len(p.rows))
 	p.Tables = append(p.Tables, &Table{
 		Header: header,
-		Rows:   p.rows[dataOffset:],
+		Rows:   p.rows[1:],
 	})
-	p.rows = [][]string{}
-	p.colSpans = []int{}
-	p.rowSpans = []int{}
 }
 
 func (p *Page) innerText(n *html.Node, sb *strings.Builder) {
