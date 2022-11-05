@@ -60,14 +60,29 @@ func (f *feeder[T]) headers() ([]string, map[string]int, error) {
 		if header == "" {
 			continue
 		}
-		if field.Type.Kind() != reflect.String {
-			return nil, nil, fmt.Errorf("only strings are supported, %s is %v",
-				field.Name, field.Type.Name())
+		err := f.isTypeSupported(field)
+		if err != nil {
+			return nil, nil, err
 		}
 		fields[header] = i
 		headers = append(headers, header)
 	}
 	return headers, fields, nil
+}
+
+func (f *feeder[T]) isTypeSupported(field reflect.StructField) error {
+	k := field.Type.Kind()
+	if k == reflect.String {
+		return nil
+	}
+	if k == reflect.Int {
+		return nil
+	}
+	if k == reflect.Bool {
+		return nil
+	}
+	return fmt.Errorf("setting field is not supported, %s is %v",
+		field.Name, field.Type.Name())
 }
 
 func (f *feeder[T]) table() (*Table, map[int]int, error) {
@@ -106,8 +121,29 @@ func (f *feeder[T]) slice() ([]T, error) {
 				// either corrupt row or something like that
 				continue
 			}
-			// remember, we work only with strings now
-			item.Field(field).SetString(row[idx])
+			switch item.Field(field).Kind() {
+			case reflect.String:
+				item.Field(field).SetString(row[idx])
+			case reflect.Bool:
+				var v bool
+				lower := strings.ToLower(row[idx])
+				if lower == "yes" ||
+					lower == "y" ||
+					lower == "true" ||
+					lower == "t" {
+					v = true
+				}
+				item.Field(field).SetBool(v)
+			case reflect.Int:
+				var v int64
+				_, err := fmt.Sscan(row[idx], &v)
+				if err != nil {
+					column := table.Header[idx]
+					return nil, fmt.Errorf("row %d: %s: %w", rowIdx, column, err)
+				}
+				item.Field(field).SetInt(v)
+			default: // noop
+			}
 		}
 	}
 	return sliceValue.Interface().([]T), nil

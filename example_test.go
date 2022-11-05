@@ -23,17 +23,17 @@ func ExampleNewSliceFromUrl() {
 	// 3M
 }
 
-func ExampleNewSliceFromURL_rowspans() {
+func ExampleNewSliceFromURL_rowspansAndColspans() {
 	type AM4 struct {
 		Model             string `header:"Model"`
 		ReleaseDate       string `header:"Release date"`
 		PCIeSupport       string `header:"PCIesupport[a]"`
-		MultiGpuCrossFire string `header:"Multi-GPU CrossFire"`
-		MultiGpuSLI       string `header:"Multi-GPU SLI"`
+		MultiGpuCrossFire bool   `header:"Multi-GPU CrossFire"`
+		MultiGpuSLI       bool   `header:"Multi-GPU SLI"`
 		USBSupport        string `header:"USBsupport[b]"`
-		SATAPorts         string `header:"Storage features SATAports"`
+		SATAPorts         int    `header:"Storage features SATAports"`
 		RAID              string `header:"Storage features RAID"`
-		AMDStoreMI        string `header:"Storage features AMD StoreMI"`
+		AMDStoreMI        bool   `header:"Storage features AMD StoreMI"`
 		Overclocking      string `header:"Processoroverclocking"`
 		TDP               string `header:"TDP"`
 		SupportExcavator  string `header:"CPU support[14] Excavator"`
