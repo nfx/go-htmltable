@@ -102,6 +102,10 @@ func (f *feeder[T]) slice() ([]T, error) {
 	for rowIdx, row := range table.Rows {
 		item := sliceValue.Index(rowIdx)
 		for idx, field := range mapping {
+			if len(row) < len(mapping) && idx == len(row) {
+				// either corrupt row or something like that
+				continue
+			}
 			// remember, we work only with strings now
 			item.Field(field).SetString(row[idx])
 		}
