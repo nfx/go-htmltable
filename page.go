@@ -245,6 +245,40 @@ func (p *Page) finishRow() {
 	p.rowSpan = []int{}
 }
 
+type cellSpan struct {
+	BeginX, EndX int
+	BeginY, EndY int
+	Value string
+}
+
+func (d *cellSpan) Match(x, y int) bool {
+	if d.BeginX > x {
+		return false
+	}
+	if d.EndX <= x {
+		return false
+	}
+	if d.BeginY > y {
+		return false
+	}
+	if d.EndY <= y {
+		return false
+	}
+	return true
+}
+
+type spans []cellSpan
+
+func (s spans) Value(x, y int) (string, bool) {
+	for _, v := range s {
+		if !v.Match(x, y) {
+			continue
+		}
+		return v.Value, true
+	}
+	return "", false
+}
+
 func (p *Page) finishTable() {
 	defer func() {
 		if r := recover(); r != nil {
@@ -263,56 +297,49 @@ func (p *Page) finishTable() {
 	}
 
 	rows := [][]string{}
-	rowSpanReset := make([]int, p.maxCols*2)
-	rowSpanBuffer := make([]int, p.maxCols*2)
+	allSpans := spans{}
 	rowSkips := 0
 	gotHeader := false
 
 ROWS:
-	for r := 0; r < len(p.rows); r++ { // rows cols addressable by c
+	for y := 0; y < len(p.rows); y++ { // rows cols addressable by x
 		currentRow := []string{}
 		skipRow := false
 		k := 0 // next row columns
 		j := 0 // p.rows cols addressable by j
-		for c := 0; c < p.maxCols; c++ {
-			if rowSpanReset[c] == r {
-				rowSpanReset[c] = -1
-				rowSpanBuffer[c] = -1
-			}
-			if rowSpanBuffer[c] > 0 {
-				fromRow := rowSpanBuffer[c]
-				currentRow = append(currentRow, rows[fromRow][c])
+		for x := 0; x < p.maxCols; x++ {
+			value, ok := allSpans.Value(x, y)
+			if ok {
+				currentRow = append(currentRow, value)
 				continue
 			}
-			if len(p.rows[r]) == 1 && p.cSpans[r][j] == p.maxCols {
+			if len(p.rows[y]) == 1 && p.cSpans[y][j] == p.maxCols {
 				// this are most likely empty rows or table dividers
 				rowSkips++
 				continue ROWS
 			}
-			if len(p.rSpans[r]) == j {
+			if len(p.rSpans[y]) == j {
 				break
 			}
-			rowSpan := p.rSpans[r][j]
-			if rowSpan > 1 {
-				rowSpanBuffer[c] = r - rowSkips
-				rowSpanReset[c] = r + rowSpan
+			rowSpan := p.rSpans[y][j]
+			colSpan := p.cSpans[y][j]
+			value = p.rows[y][j]
+			if gotHeader && (rowSpan > 1 || colSpan > 1) {
+				allSpans = append(allSpans, cellSpan{
+					BeginX: x,
+					EndX: x+colSpan,
+					BeginY: y,
+					EndY: y + rowSpan,
+					Value: value,
+				})
 			}
-			value := p.rows[r][j]
-			colSpan := p.cSpans[r][j]
-			if colSpan > 1 { // in header: merge, in row - duplicate
-				if !gotHeader {
-					skipRow = true
-					for q := 0; q < colSpan; q++ {
-						nextValue := fmt.Sprintf("%s %s", value, p.rows[r+1][k])
-						currentRow = append(currentRow, nextValue)
-						k++
-					}
-				} else {
-					for q := 0; q < colSpan; q++ {
-						currentRow = append(currentRow, value)
-						// c++
-						// j++
-					}
+			if !gotHeader && colSpan > 1 {
+				skipRow = true
+				// in header: merge, in row - duplicate
+				for q := 0; q < colSpan; q++ {
+					nextValue := fmt.Sprintf("%s %s", value, p.rows[y+1][k])
+					currentRow = append(currentRow, nextValue)
+					k++
 				}
 			} else {
 				currentRow = append(currentRow, value)
@@ -321,7 +348,7 @@ ROWS:
 		}
 		if skipRow {
 			rowSkips++
-			r++
+			y++
 		}
 		gotHeader = true
 		if len(currentRow) > p.maxCols {
@@ -329,11 +356,15 @@ ROWS:
 		}
 		rows = append(rows, currentRow)
 	}
-	header := p.rows[0]
-	Logger(p.ctx, "found table", "columns", header, "count", len(p.rows))
+	header := rows[0]
+	rows = rows[1:]
+	// for _, v := range header {
+	// 	println(fmt.Sprintf("%s string `header:\"%s\"`", v, v))
+	// }
+	Logger(p.ctx, "found table", "columns", header, "count", len(rows))
 	p.Tables = append(p.Tables, &Table{
 		Header: header,
-		Rows:   p.rows[1:],
+		Rows:   rows,
 	})
 }
 

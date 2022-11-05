@@ -67,6 +67,6 @@ func ExampleLogger() {
 	_, _ = htmltable.NewFromURL("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")
 
 	// Output:
-	// [INFO] found table [columns [Symbol Security SEC filings GICSSector GICS Sub-Industry Headquarters Location Date first added CIK Founded] count 504]
-	// [INFO] found table [columns [Date Added Ticker Added Security Removed Ticker Removed Security Reason] count 308]
+	// [INFO] found table [columns [Symbol Security SEC filings GICSSector GICS Sub-Industry Headquarters Location Date first added CIK Founded] count 503]
+	// [INFO] found table [columns [Date Added Ticker Added Security Removed Ticker Removed Security Reason] count 312]
 }

@@ -56,25 +56,260 @@ func TestNewSliceInvalidTypes(t *testing.T) {
 	assertEqualError(t, err, "only strings are supported, C is float32")
 }
 
-func TestIssue3(t *testing.T) {
-	type Chipset struct {
-		Model       string `header:"Model"`
-		Codename    string `header:"Codename"`
-		Released    string `header:"Released"`
-		CPUSupport  string `header:"CPU support"`
-		Fab         string `header:"Fab (nm)"`
-		HT          string `header:"HT (MHz)"`
-		IGP         string `header:"IGP"`
-		CrossFire   string `header:"CrossFire"`
-		Southbridge string `header:"Southbridge"`
-		Features    string `header:"Features / Notes"`
+func TestVeryCreativeTableWithRowAndColspans(t *testing.T) {
+	type AM4 struct {
+		Model             string `header:"Model"`
+		ReleaseDate       string `header:"Release date"`
+		PCIeSupport       string `header:"PCIesupport[a]"`
+		MultiGpuCrossFire string `header:"Multi-GPU CrossFire"`
+		MultiGpuSLI       string `header:"Multi-GPU SLI"`
+		USBSupport        string `header:"USBsupport[b]"`
+		SATAPorts         string `header:"Storage features SATAports"`
+		RAID              string `header:"Storage features RAID"`
+		AMDStoreMI        string `header:"Storage features AMD StoreMI"`
+		Overclocking      string `header:"Processoroverclocking"`
+		TDP               string `header:"TDP"`
+		SupportExcavator  string `header:"CPU support[14] Excavator"`
+		SupportZen        string `header:"CPU support[14] Zen"`
+		SupportZenPlus    string `header:"CPU support[14] Zen+"`
+		SupportZen2       string `header:"CPU support[14] Zen 2"`
+		SupportZen3       string `header:"CPU support[14] Zen 3"`
+		Architecture      string `header:"Architecture"`
 	}
-	chipsets, err := NewSliceFromString[Chipset](x)
+	chipsets, err := NewSliceFromString[AM4](am4info)
 	assertNoError(t, err)
-	assertEqual(t, true, len(chipsets) > 3)
+	expected := []AM4{
+		{ // row 0
+			Model:             "A320",
+			ReleaseDate:       "February 2017[15]",
+			PCIeSupport:       "PCIe 2.0 ×4",
+			MultiGpuCrossFire: "No",
+			MultiGpuSLI:       "No",
+			USBSupport:        "1, 2, 6",
+			SATAPorts:         "4",
+			RAID:              "0,1,10",
+			AMDStoreMI:        "No",
+			Overclocking:      "Limited to pre-Zen CPUs, unless an unsupported third-party motherboard firmware applied",
+			TDP:               "~5 W[16]",
+			SupportExcavator:  "Yes",
+			SupportZen:        "Yes",
+			SupportZenPlus:    "Yes",
+			SupportZen2:       "Varies[c]",
+			SupportZen3:       "Varies[c]",
+			Architecture:      "Promontory",
+		},
+		{ // row 1
+			Model:             "B350",
+			ReleaseDate:       "February 2017[15]",
+			PCIeSupport:       "PCIe 2.0 ×6",
+			MultiGpuCrossFire: "Yes",
+			MultiGpuSLI:       "No",
+			USBSupport:        "2, 2, 6",
+			SATAPorts:         "4",
+			RAID:              "0,1,10",
+			AMDStoreMI:        "No",
+			Overclocking:      "Yes",
+			TDP:               "~5 W[16]",
+			SupportExcavator:  "Yes",
+			SupportZen:        "Yes",
+			SupportZenPlus:    "Yes",
+			SupportZen2:       "Varies[c]",
+			SupportZen3:       "Varies[c]",
+			Architecture:      "Promontory",
+		},
+		{ // row 2
+			Model:             "X370",
+			ReleaseDate:       "February 2017[15]",
+			PCIeSupport:       "PCIe 2.0 ×8",
+			MultiGpuCrossFire: "Yes",
+			MultiGpuSLI:       "Yes",
+			USBSupport:        "2, 6, 6",
+			SATAPorts:         "8",
+			RAID:              "0,1,10",
+			AMDStoreMI:        "No",
+			Overclocking:      "Yes",
+			TDP:               "~5 W[16]",
+			SupportExcavator:  "Yes",
+			SupportZen:        "Yes",
+			SupportZenPlus:    "Yes",
+			SupportZen2:       "Varies[c]",
+			SupportZen3:       "Varies[c]",
+			Architecture:      "Promontory",
+		},
+		{ // row 3
+			Model:             "B450",
+			ReleaseDate:       "March 2018[17]",
+			PCIeSupport:       "PCIe 2.0 ×6",
+			MultiGpuCrossFire: "Yes",
+			MultiGpuSLI:       "No",
+			USBSupport:        "2, 2, 6",
+			SATAPorts:         "4",
+			RAID:              "0,1,10",
+			AMDStoreMI:        "Yes",
+			Overclocking:      "Yes,withPBO",
+			TDP:               "~5 W[16]",
+			SupportExcavator:  "Varies[d]",
+			SupportZen:        "Yes",
+			SupportZenPlus:    "Yes",
+			SupportZen2:       "Yes",
+			SupportZen3:       "Varies[d][18]",
+			Architecture:      "Promontory",
+		},
+		{ // row 4
+			Model:             "X470",
+			ReleaseDate:       "March 2018[17]",
+			PCIeSupport:       "PCIe 2.0 ×8",
+			MultiGpuCrossFire: "Yes",
+			MultiGpuSLI:       "Yes",
+			USBSupport:        "2, 6, 6",
+			SATAPorts:         "8",
+			RAID:              "0,1,10",
+			AMDStoreMI:        "Yes",
+			Overclocking:      "Yes,withPBO",
+			TDP:               "~5 W[16]",
+			SupportExcavator:  "Varies[d]",
+			SupportZen:        "Yes",
+			SupportZenPlus:    "Yes",
+			SupportZen2:       "Yes",
+			SupportZen3:       "Varies[d][18]",
+			Architecture:      "Promontory",
+		},
+		{ // row 5
+			Model:             "A520",
+			ReleaseDate:       "August 2020[19]",
+			PCIeSupport:       "PCIe 3.0 ×6",
+			MultiGpuCrossFire: "No",
+			MultiGpuSLI:       "No",
+			USBSupport:        "1, 2, 6",
+			SATAPorts:         "4",
+			RAID:              "0,1,10",
+			AMDStoreMI:        "Yes",
+			Overclocking:      "No, unless an unsupported third-party motherboard firmware applied",
+			TDP:               "~5 W[16]",
+			SupportExcavator:  "Varies[d]",
+			SupportZen:        "Varies",
+			SupportZenPlus:    "Yes",
+			SupportZen2:       "Yes",
+			SupportZen3:       "Varies[d][18]",
+			Architecture:      "Promontory",
+		},
+		{ // row 6
+			Model:             "B550[e]",
+			ReleaseDate:       "June 2020[20]",
+			PCIeSupport:       "PCIe 3.0 ×10[21]",
+			MultiGpuCrossFire: "Yes",
+			MultiGpuSLI:       "Varies",
+			USBSupport:        "2, 2, 6",
+			SATAPorts:         "6",
+			RAID:              "0,1,10",
+			AMDStoreMI:        "Yes",
+			Overclocking:      "Yes,withPBO",
+			TDP:               "~5 W[16]",
+			SupportExcavator:  "Varies[d]",
+			SupportZen:        "Varies",
+			SupportZenPlus:    "Yes",
+			SupportZen2:       "Yes",
+			SupportZen3:       "Varies[d][18]",
+			Architecture:      "Promontory",
+		},
+		{ // row 7
+			Model:             "X570",
+			ReleaseDate:       "July 2019[22]",
+			PCIeSupport:       "PCIe 4.0 ×16",
+			MultiGpuCrossFire: "Yes",
+			MultiGpuSLI:       "Yes",
+			USBSupport:        "8, 0, 4",
+			SATAPorts:         "12",
+			RAID:              "0,1,10",
+			AMDStoreMI:        "Yes",
+			Overclocking:      "Yes,withPBO",
+			TDP:               "~15 W[23][24][f]",
+			SupportExcavator:  "No[g]",
+			SupportZen:        "Yes",
+			SupportZenPlus:    "Yes",
+			SupportZen2:       "Yes",
+			SupportZen3:       "Yes",
+			Architecture:      "Bixby",
+		},
+	}
+	var failed bool
+	for i, v := range expected {
+		if chipsets[i].Model != v.Model {
+			failed = true
+			t.Logf("expected chipsets[%d].Model (%s) to be %v but got %v", i, v.Model, v.Model, chipsets[i].Model)
+		}
+		if chipsets[i].ReleaseDate != v.ReleaseDate {
+			failed = true
+			t.Logf("expected chipsets[%d].ReleaseDate (%s) to be %v but got %v", i, v.Model, v.ReleaseDate, chipsets[i].ReleaseDate)
+		}
+		if chipsets[i].PCIeSupport != v.PCIeSupport {
+			failed = true
+			t.Logf("expected chipsets[%d].PCIeSupport (%s) to be %v but got %v", i, v.Model, v.PCIeSupport, chipsets[i].PCIeSupport)
+		}
+		if chipsets[i].MultiGpuCrossFire != v.MultiGpuCrossFire {
+			failed = true
+			t.Logf("expected chipsets[%d].MultiGpuCrossFire (%s) to be %v but got %v", i, v.Model, v.MultiGpuCrossFire, chipsets[i].MultiGpuCrossFire)
+		}
+		if chipsets[i].MultiGpuSLI != v.MultiGpuSLI {
+			failed = true
+			t.Logf("expected chipsets[%d].MultiGpuSLI (%s) to be %v but got %v", i, v.Model, v.MultiGpuSLI, chipsets[i].MultiGpuSLI)
+		}
+		if chipsets[i].USBSupport != v.USBSupport {
+			failed = true
+			t.Logf("expected chipsets[%d].USBSupport (%s) to be %v but got %v", i, v.Model, v.USBSupport, chipsets[i].USBSupport)
+		}
+		if chipsets[i].SATAPorts != v.SATAPorts {
+			failed = true
+			t.Logf("expected chipsets[%d].SATAPorts (%s) to be %v but got %v", i, v.Model, v.SATAPorts, chipsets[i].SATAPorts)
+		}
+		if chipsets[i].RAID != v.RAID {
+			failed = true
+			t.Logf("expected chipsets[%d].RAID (%s) to be %v but got %v", i, v.Model, v.RAID, chipsets[i].RAID)
+		}
+		if chipsets[i].AMDStoreMI != v.AMDStoreMI {
+			failed = true
+			t.Logf("expected chipsets[%d].AMDStoreMI (%s) to be %v but got %v", i, v.Model, v.AMDStoreMI, chipsets[i].AMDStoreMI)
+		}
+		if chipsets[i].Overclocking != v.Overclocking {
+			failed = true
+			t.Logf("expected chipsets[%d].Overclocking (%s) to be %v but got %v", i, v.Model, v.Overclocking, chipsets[i].Overclocking)
+		}
+		if chipsets[i].TDP != v.TDP {
+			failed = true
+			t.Logf("expected chipsets[%d].TDP (%s) to be %v but got %v", i, v.Model, v.TDP, chipsets[i].TDP)
+		}
+		if chipsets[i].SupportExcavator != v.SupportExcavator {
+			failed = true
+			t.Logf("expected chipsets[%d].SupportExcavator (%s) to be %v but got %v", i, v.Model, v.SupportExcavator, chipsets[i].SupportExcavator)
+		}
+		if chipsets[i].SupportZen != v.SupportZen {
+			failed = true
+			t.Logf("expected chipsets[%d].SupportZen (%s) to be %v but got %v", i, v.Model, v.SupportZen, chipsets[i].SupportZen)
+		}
+		if chipsets[i].SupportZenPlus != v.SupportZenPlus {
+			failed = true
+			t.Logf("expected chipsets[%d].SupportZenPlus (%s) to be %v but got %v", i, v.Model, v.SupportZenPlus, chipsets[i].SupportZenPlus)
+		}
+		if chipsets[i].SupportZen2 != v.SupportZen2 {
+			failed = true
+			t.Logf("expected chipsets[%d].SupportZen2 (%s) to be %v but got %v", i, v.Model, v.SupportZen2, chipsets[i].SupportZen2)
+		}
+		if chipsets[i].SupportZen3 != v.SupportZen3 {
+			failed = true
+			t.Logf("expected chipsets[%d].SupportZen3 (%s) to be %v but got %v", i, v.Model, v.SupportZen3, chipsets[i].SupportZen3)
+		}
+		if chipsets[i].Architecture != v.Architecture {
+			failed = true
+			t.Logf("expected chipsets[%d].Architecture (%s) to be %v but got %v", i, v.Model, v.Architecture, chipsets[i].Architecture)
+		}
+	}
+	if failed {
+		t.Fail()
+	}
 }
 
-const x = `<table class="wikitable" style="text-align:center">
+// taken from https://en.wikipedia.org/wiki/List_of_AMD_chipsets#AM4_chipsets
+const am4info = `<table class="wikitable" style="text-align:center">
 <tbody>
    <tr>
 	  <th rowspan="2">Model</th>
@@ -193,7 +428,7 @@ const x = `<table class="wikitable" style="text-align:center">
 </tbody>
 </table>`
 
-const unparsable = `<table class="wikitable" style="font-size: 100%; text-align: center; letter-spacing:0px;">
+const xx = `<table class="wikitable" style="font-size: 100%; text-align: center; letter-spacing:0px;">
 <tbody>
    <tr>
 	  <th rowspan="2">Branding</th>
