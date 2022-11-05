@@ -53,7 +53,7 @@ func TestNewSliceInvalidTypes(t *testing.T) {
 		C float32 `header:"c"`
 	}
 	_, err := NewSliceFromString[exotic](fixture)
-	assertEqualError(t, err, "only strings are supported, C is float32")
+	assertEqualError(t, err, "setting field is not supported, C is float32")
 }
 
 func TestVeryCreativeTableWithRowAndColspans(t *testing.T) {
@@ -61,12 +61,12 @@ func TestVeryCreativeTableWithRowAndColspans(t *testing.T) {
 		Model             string `header:"Model"`
 		ReleaseDate       string `header:"Release date"`
 		PCIeSupport       string `header:"PCIesupport[a]"`
-		MultiGpuCrossFire string `header:"Multi-GPU CrossFire"`
-		MultiGpuSLI       string `header:"Multi-GPU SLI"`
+		MultiGpuCrossFire bool   `header:"Multi-GPU CrossFire"`
+		MultiGpuSLI       bool   `header:"Multi-GPU SLI"`
 		USBSupport        string `header:"USBsupport[b]"`
-		SATAPorts         string `header:"Storage features SATAports"`
+		SATAPorts         int    `header:"Storage features SATAports"`
 		RAID              string `header:"Storage features RAID"`
-		AMDStoreMI        string `header:"Storage features AMD StoreMI"`
+		AMDStoreMI        bool   `header:"Storage features AMD StoreMI"`
 		Overclocking      string `header:"Processoroverclocking"`
 		TDP               string `header:"TDP"`
 		SupportExcavator  string `header:"CPU support[14] Excavator"`
@@ -83,12 +83,12 @@ func TestVeryCreativeTableWithRowAndColspans(t *testing.T) {
 			Model:             "A320",
 			ReleaseDate:       "February 2017[15]",
 			PCIeSupport:       "PCIe 2.0 ×4",
-			MultiGpuCrossFire: "No",
-			MultiGpuSLI:       "No",
+			MultiGpuCrossFire: false,
+			MultiGpuSLI:       false,
 			USBSupport:        "1, 2, 6",
-			SATAPorts:         "4",
+			SATAPorts:         4,
 			RAID:              "0,1,10",
-			AMDStoreMI:        "No",
+			AMDStoreMI:        false,
 			Overclocking:      "Limited to pre-Zen CPUs, unless an unsupported third-party motherboard firmware applied",
 			TDP:               "~5 W[16]",
 			SupportExcavator:  "Yes",
@@ -102,12 +102,12 @@ func TestVeryCreativeTableWithRowAndColspans(t *testing.T) {
 			Model:             "B350",
 			ReleaseDate:       "February 2017[15]",
 			PCIeSupport:       "PCIe 2.0 ×6",
-			MultiGpuCrossFire: "Yes",
-			MultiGpuSLI:       "No",
+			MultiGpuCrossFire: true,
+			MultiGpuSLI:       false,
 			USBSupport:        "2, 2, 6",
-			SATAPorts:         "4",
+			SATAPorts:         4,
 			RAID:              "0,1,10",
-			AMDStoreMI:        "No",
+			AMDStoreMI:        false,
 			Overclocking:      "Yes",
 			TDP:               "~5 W[16]",
 			SupportExcavator:  "Yes",
@@ -121,12 +121,12 @@ func TestVeryCreativeTableWithRowAndColspans(t *testing.T) {
 			Model:             "X370",
 			ReleaseDate:       "February 2017[15]",
 			PCIeSupport:       "PCIe 2.0 ×8",
-			MultiGpuCrossFire: "Yes",
-			MultiGpuSLI:       "Yes",
+			MultiGpuCrossFire: true,
+			MultiGpuSLI:       true,
 			USBSupport:        "2, 6, 6",
-			SATAPorts:         "8",
+			SATAPorts:         8,
 			RAID:              "0,1,10",
-			AMDStoreMI:        "No",
+			AMDStoreMI:        false,
 			Overclocking:      "Yes",
 			TDP:               "~5 W[16]",
 			SupportExcavator:  "Yes",
@@ -140,12 +140,12 @@ func TestVeryCreativeTableWithRowAndColspans(t *testing.T) {
 			Model:             "B450",
 			ReleaseDate:       "March 2018[17]",
 			PCIeSupport:       "PCIe 2.0 ×6",
-			MultiGpuCrossFire: "Yes",
-			MultiGpuSLI:       "No",
+			MultiGpuCrossFire: true,
+			MultiGpuSLI:       false,
 			USBSupport:        "2, 2, 6",
-			SATAPorts:         "4",
+			SATAPorts:         4,
 			RAID:              "0,1,10",
-			AMDStoreMI:        "Yes",
+			AMDStoreMI:        true,
 			Overclocking:      "Yes,withPBO",
 			TDP:               "~5 W[16]",
 			SupportExcavator:  "Varies[d]",
@@ -159,12 +159,12 @@ func TestVeryCreativeTableWithRowAndColspans(t *testing.T) {
 			Model:             "X470",
 			ReleaseDate:       "March 2018[17]",
 			PCIeSupport:       "PCIe 2.0 ×8",
-			MultiGpuCrossFire: "Yes",
-			MultiGpuSLI:       "Yes",
+			MultiGpuCrossFire: true,
+			MultiGpuSLI:       true,
 			USBSupport:        "2, 6, 6",
-			SATAPorts:         "8",
+			SATAPorts:         8,
 			RAID:              "0,1,10",
-			AMDStoreMI:        "Yes",
+			AMDStoreMI:        true,
 			Overclocking:      "Yes,withPBO",
 			TDP:               "~5 W[16]",
 			SupportExcavator:  "Varies[d]",
@@ -178,12 +178,12 @@ func TestVeryCreativeTableWithRowAndColspans(t *testing.T) {
 			Model:             "A520",
 			ReleaseDate:       "August 2020[19]",
 			PCIeSupport:       "PCIe 3.0 ×6",
-			MultiGpuCrossFire: "No",
-			MultiGpuSLI:       "No",
+			MultiGpuCrossFire: false,
+			MultiGpuSLI:       false,
 			USBSupport:        "1, 2, 6",
-			SATAPorts:         "4",
+			SATAPorts:         4,
 			RAID:              "0,1,10",
-			AMDStoreMI:        "Yes",
+			AMDStoreMI:        true,
 			Overclocking:      "No, unless an unsupported third-party motherboard firmware applied",
 			TDP:               "~5 W[16]",
 			SupportExcavator:  "Varies[d]",
@@ -197,12 +197,12 @@ func TestVeryCreativeTableWithRowAndColspans(t *testing.T) {
 			Model:             "B550[e]",
 			ReleaseDate:       "June 2020[20]",
 			PCIeSupport:       "PCIe 3.0 ×10[21]",
-			MultiGpuCrossFire: "Yes",
-			MultiGpuSLI:       "Varies",
+			MultiGpuCrossFire: true,
+			MultiGpuSLI:       false,
 			USBSupport:        "2, 2, 6",
-			SATAPorts:         "6",
+			SATAPorts:         6,
 			RAID:              "0,1,10",
-			AMDStoreMI:        "Yes",
+			AMDStoreMI:        true,
 			Overclocking:      "Yes,withPBO",
 			TDP:               "~5 W[16]",
 			SupportExcavator:  "Varies[d]",
@@ -216,12 +216,12 @@ func TestVeryCreativeTableWithRowAndColspans(t *testing.T) {
 			Model:             "X570",
 			ReleaseDate:       "July 2019[22]",
 			PCIeSupport:       "PCIe 4.0 ×16",
-			MultiGpuCrossFire: "Yes",
-			MultiGpuSLI:       "Yes",
+			MultiGpuCrossFire: true,
+			MultiGpuSLI:       true,
 			USBSupport:        "8, 0, 4",
-			SATAPorts:         "12",
+			SATAPorts:         12,
 			RAID:              "0,1,10",
-			AMDStoreMI:        "Yes",
+			AMDStoreMI:        true,
 			Overclocking:      "Yes,withPBO",
 			TDP:               "~15 W[23][24][f]",
 			SupportExcavator:  "No[g]",

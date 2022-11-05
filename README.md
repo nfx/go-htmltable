@@ -76,7 +76,7 @@ _ = page.Each2("c", "d", func(c, d string) error {
 // c:4 d:6
 ```
 
-Complex [tables with row and col spans](https://en.wikipedia.org/wiki/List_of_AMD_chipsets#AM4_chipsets) are natively supported as well:
+Complex [tables with row and col spans](https://en.wikipedia.org/wiki/List_of_AMD_chipsets#AM4_chipsets) are natively supported as well. You can annotate `string`, `int`, and `bool` fields. Any `bool` field value is `true` if it is equal in lowercase to one of `yes`, `y`, `true`, `t`.
 
 ![Wikipedia, AMD AM4 chipsets](doc/colspans-rowspans.png)
 
@@ -85,12 +85,12 @@ type AM4 struct {
     Model             string `header:"Model"`
     ReleaseDate       string `header:"Release date"`
     PCIeSupport       string `header:"PCIesupport[a]"`
-    MultiGpuCrossFire string `header:"Multi-GPU CrossFire"`
-    MultiGpuSLI       string `header:"Multi-GPU SLI"`
+    MultiGpuCrossFire bool   `header:"Multi-GPU CrossFire"`
+    MultiGpuSLI       bool   `header:"Multi-GPU SLI"`
     USBSupport        string `header:"USBsupport[b]"`
-    SATAPorts         string `header:"Storage features SATAports"`
+    SATAPorts         int    `header:"Storage features SATAports"`
     RAID              string `header:"Storage features RAID"`
-    AMDStoreMI        string `header:"Storage features AMD StoreMI"`
+    AMDStoreMI        bool   `header:"Storage features AMD StoreMI"`
     Overclocking      string `header:"Processoroverclocking"`
     TDP               string `header:"TDP"`
     SupportExcavator  string `header:"CPU support[14] Excavator"`
