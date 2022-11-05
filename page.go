@@ -248,7 +248,7 @@ func (p *Page) finishRow() {
 type cellSpan struct {
 	BeginX, EndX int
 	BeginY, EndY int
-	Value string
+	Value        string
 }
 
 func (d *cellSpan) Match(x, y int) bool {
@@ -282,7 +282,11 @@ func (s spans) Value(x, y int) (string, bool) {
 func (p *Page) finishTable() {
 	defer func() {
 		if r := recover(); r != nil {
-			Logger(p.ctx, "unparsable table", "panic", fmt.Sprintf("%v", r))
+			firstRow := []string{}
+			if len(p.rows) > 0 {
+				firstRow = p.rows[0][:]
+			}
+			Logger(p.ctx, "unparsable table", "panic", fmt.Sprintf("%v", r), "firstRow", firstRow)
 		}
 		p.rows = [][]string{}
 		p.colSpans = []int{}
@@ -313,7 +317,7 @@ ROWS:
 				currentRow = append(currentRow, value)
 				continue
 			}
-			if len(p.rows[y]) == 1 && p.cSpans[y][j] == p.maxCols {
+			if gotHeader && len(p.rows[y]) == 1 && p.rows[y][0] == "" {
 				// this are most likely empty rows or table dividers
 				rowSkips++
 				continue ROWS
@@ -327,10 +331,10 @@ ROWS:
 			if gotHeader && (rowSpan > 1 || colSpan > 1) {
 				allSpans = append(allSpans, cellSpan{
 					BeginX: x,
-					EndX: x+colSpan,
+					EndX:   x + colSpan,
 					BeginY: y,
-					EndY: y + rowSpan,
-					Value: value,
+					EndY:   y + rowSpan,
+					Value:  value,
 				})
 			}
 			if !gotHeader && colSpan > 1 {
@@ -358,9 +362,6 @@ ROWS:
 	}
 	header := rows[0]
 	rows = rows[1:]
-	// for _, v := range header {
-	// 	println(fmt.Sprintf("%s string `header:\"%s\"`", v, v))
-	// }
 	Logger(p.ctx, "found table", "columns", header, "count", len(rows))
 	p.Tables = append(p.Tables, &Table{
 		Header: header,

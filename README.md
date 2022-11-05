@@ -76,6 +76,39 @@ _ = page.Each2("c", "d", func(c, d string) error {
 // c:4 d:6
 ```
 
+Complex [tables with row and col spans](https://en.wikipedia.org/wiki/List_of_AMD_chipsets#AM4_chipsets) are natively supported as well:
+
+![Wikipedia, AMD AM4 chipsets](doc/colspans-rowspans.png)
+
+```go
+type AM4 struct {
+    Model             string `header:"Model"`
+    ReleaseDate       string `header:"Release date"`
+    PCIeSupport       string `header:"PCIesupport[a]"`
+    MultiGpuCrossFire string `header:"Multi-GPU CrossFire"`
+    MultiGpuSLI       string `header:"Multi-GPU SLI"`
+    USBSupport        string `header:"USBsupport[b]"`
+    SATAPorts         string `header:"Storage features SATAports"`
+    RAID              string `header:"Storage features RAID"`
+    AMDStoreMI        string `header:"Storage features AMD StoreMI"`
+    Overclocking      string `header:"Processoroverclocking"`
+    TDP               string `header:"TDP"`
+    SupportExcavator  string `header:"CPU support[14] Excavator"`
+    SupportZen        string `header:"CPU support[14] Zen"`
+    SupportZenPlus    string `header:"CPU support[14] Zen+"`
+    SupportZen2       string `header:"CPU support[14] Zen 2"`
+    SupportZen3       string `header:"CPU support[14] Zen 3"`
+    Architecture      string `header:"Architecture"`
+}
+am4Chipsets, _ := htmltable.NewSliceFromURL[AM4]("https://en.wikipedia.org/wiki/List_of_AMD_chipsets")
+fmt.Println(am4Chipsets[2].Model)
+fmt.Println(am4Chipsets[2].SupportZen2)
+
+// Output:
+// X370
+// Varies[c]
+```
+
 And the last note: you're encouraged to plug your own structured logger:
 
 ```go
