@@ -18,6 +18,13 @@ func NewSlice[T any](ctx context.Context, r io.Reader) ([]T, error) {
 	return f.slice()
 }
 
+// NewSliceFromPage finds a table matching the slice and returns the slice
+func NewSliceFromPage[T any](p *Page) ([]T, error) {
+	return (&feeder[T]{
+		Page: *p,
+	}).slice()
+}
+
 // NewSliceFromString is same as NewSlice(context.Context, io.Reader),
 // but takes just a string.
 func NewSliceFromString[T any](in string) ([]T, error) {
