@@ -36,11 +36,11 @@ func ExampleNewSliceFromURL_rowspansAndColspans() {
 		AMDStoreMI        bool   `header:"Storage features AMD StoreMI"`
 		Overclocking      string `header:"Processoroverclocking"`
 		TDP               string `header:"TDP"`
-		SupportExcavator  string `header:"CPU support[14] Excavator"`
-		SupportZen        string `header:"CPU support[14] Zen"`
-		SupportZenPlus    string `header:"CPU support[14] Zen+"`
-		SupportZen2       string `header:"CPU support[14] Zen 2"`
-		SupportZen3       string `header:"CPU support[14] Zen 3"`
+		SupportExcavator  string `header:"CPU support Excavator"`
+		SupportZen        string `header:"CPU support Zen"`
+		SupportZenPlus    string `header:"CPU support Zen+"`
+		SupportZen2       string `header:"CPU support Zen 2"`
+		SupportZen3       string `header:"CPU support Zen 3"`
 		Architecture      string `header:"Architecture"`
 	}
 	am4Chipsets, _ := htmltable.NewSliceFromURL[AM4]("https://en.wikipedia.org/wiki/List_of_AMD_chipsets")
@@ -97,5 +97,5 @@ func ExampleLogger() {
 
 	// Output:
 	// [INFO] found table [columns [Symbol Security SEC filings GICSSector GICS Sub-Industry Headquarters Location Date first added CIK Founded] count 503]
-	// [INFO] found table [columns [Date Added Ticker Added Security Removed Ticker Removed Security Reason] count 312]
+	// [INFO] found table [columns [Date Added Ticker Added Security Removed Ticker Removed Security Reason] count 316]
 }
