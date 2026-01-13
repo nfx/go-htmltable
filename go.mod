@@ -1,5 +1,5 @@
 module github.com/nfx/go-htmltable
 
-go 1.18
+go 1.24.0
 
-require golang.org/x/net v0.26.0
+require golang.org/x/net v0.49.0
