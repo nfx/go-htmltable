@@ -7,7 +7,7 @@ import (
 	"github.com/nfx/go-htmltable"
 )
 
-func ExampleNewSliceFromUrl() {
+func ExampleNewSliceFromURL() {
 	type Ticker struct {
 		Symbol   string `header:"Symbol"`
 		Security string `header:"Security"`
@@ -31,7 +31,7 @@ func ExampleNewSliceFromURL_rowspansAndColspans() {
 		MultiGpuCrossFire bool   `header:"Multi-GPU CrossFire"`
 		MultiGpuSLI       bool   `header:"Multi-GPU SLI"`
 		USBSupport        string `header:"USBsupport[b]"`
-		SATAPorts         int    `header:"Storage features SATAports"`
+		SATAPorts         string `header:"Storage features SATAports"`
 		RAID              string `header:"Storage features RAID"`
 		AMDStoreMI        bool   `header:"Storage features AMD StoreMI"`
 		Overclocking      string `header:"Processoroverclocking"`
@@ -41,15 +41,17 @@ func ExampleNewSliceFromURL_rowspansAndColspans() {
 		SupportZenPlus    string `header:"CPU support Zen+"`
 		SupportZen2       string `header:"CPU support Zen 2"`
 		SupportZen3       string `header:"CPU support Zen 3"`
+		ECCMemory         string `header:"ECC memory"`
 		Architecture      string `header:"Architecture"`
+		PartNumber        string `header:"Part number"`
 	}
 	am4Chipsets, _ := htmltable.NewSliceFromURL[AM4]("https://en.wikipedia.org/wiki/List_of_AMD_chipsets")
-	fmt.Println(am4Chipsets[2].Model)
-	fmt.Println(am4Chipsets[2].SupportZen2)
+	fmt.Println(am4Chipsets[5].Model)
+	fmt.Println(am4Chipsets[5].SupportZen2)
 
 	// Output:
 	// X370
-	// Varies[c]
+	// Varies[f]
 }
 
 func ExampleNewFromString() {
@@ -96,6 +98,7 @@ func ExampleLogger() {
 	_, _ = htmltable.NewFromURL("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")
 
 	// Output:
-	// [INFO] found table [columns [Symbol Security SEC filings GICSSector GICS Sub-Industry Headquarters Location Date first added CIK Founded] count 503]
-	// [INFO] found table [columns [Date Added Ticker Added Security Removed Ticker Removed Security Reason] count 316]
+	// [INFO] found table [columns [Symbol Security GICSSector GICS Sub-Industry Headquarters Location Date added CIK Founded] count 503]
+	// [INFO] found table [columns [Effective Date Added Ticker Added Security Removed Ticker Removed Security Reason] count 394]
+	// [INFO] found table [columns [vteS&P 500 companies Energy vteS&P 500 companies APA CorporationBaker HughesChevron CorporationConocoPhillipsCoterraDevon EnergyDiamondback EnergyEOG ResourcesEQT CorporationExpand EnergyExxonMobilHalliburtonKinder MorganMarathon PetroleumOccidental PetroleumOneokPhillips 66SLBTarga ResourcesTexas Pacific Land CorporationValero EnergyWilliams Companies] count 10]
 }

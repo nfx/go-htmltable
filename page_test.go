@@ -104,7 +104,10 @@ func TestNewFromHttpResponseError(t *testing.T) {
 }
 
 func TestRealPageFound(t *testing.T) {
-	wiki, err := http.Get("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")
+	req, err := http.NewRequest("GET", "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies", nil)
+	assertNoError(t, err)
+	req.Header.Set("User-Agent", DefaultUserAgent)
+	wiki, err := http.DefaultClient.Do(req)
 	assertNoError(t, err)
 	p, err := NewFromResponse(wiki)
 	assertNoError(t, err)
@@ -114,11 +117,14 @@ func TestRealPageFound(t *testing.T) {
 }
 
 func TestRealPageFound_BasicRowColSpans(t *testing.T) {
-	wiki, err := http.Get("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")
+	req, err := http.NewRequest("GET", "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies", nil)
+	assertNoError(t, err)
+	req.Header.Set("User-Agent", DefaultUserAgent)
+	wiki, err := http.DefaultClient.Do(req)
 	assertNoError(t, err)
 	p, err := NewFromResponse(wiki)
 	assertNoError(t, err)
-	snp, err := p.FindWithColumns("Date", "Added Ticker", "Removed Ticker")
+	snp, err := p.FindWithColumns("Effective Date", "Added Ticker", "Removed Ticker")
 	assertNoError(t, err)
 	assertGreaterOrEqual(t, len(snp.Rows), 250)
 }

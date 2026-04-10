@@ -10,9 +10,9 @@ import (
 )
 
 // NewSlice returns slice of annotated struct types from io.Reader
-func NewSlice[T any](ctx context.Context, r io.Reader) ([]T, error) {
+func NewSlice[T any](ctx context.Context, r io.Reader, opts ...Option) ([]T, error) {
 	f := &feeder[T]{
-		Page: Page{ctx: ctx},
+		Page: Page{ctx: ctx, opts: applyOptions(opts)},
 	}
 	f.init(r)
 	return f.slice()
@@ -27,27 +27,37 @@ func NewSliceFromPage[T any](p *Page) ([]T, error) {
 
 // NewSliceFromString is same as NewSlice(context.Context, io.Reader),
 // but takes just a string.
-func NewSliceFromString[T any](in string) ([]T, error) {
-	return NewSlice[T](context.Background(), strings.NewReader(in))
+func NewSliceFromString[T any](in string, opts ...Option) ([]T, error) {
+	return NewSlice[T](context.Background(), strings.NewReader(in), opts...)
 }
 
 // NewSliceFromString is same as NewSlice(context.Context, io.Reader),
 // but takes just an http.Response
-func NewSliceFromResponse[T any](resp *http.Response) ([]T, error) {
-	return NewSlice[T](resp.Request.Context(), resp.Body)
+func NewSliceFromResponse[T any](resp *http.Response, opts ...Option) ([]T, error) {
+	return NewSlice[T](resp.Request.Context(), resp.Body, opts...)
 }
 
 // NewSliceFromString is same as NewSlice(context.Context, io.Reader),
 // but takes just an URL.
-func NewSliceFromURL[T any](url string) ([]T, error) {
-	resp, err := http.Get(url)
+func NewSliceFromURL[T any](url string, opts ...Option) ([]T, error) {
+	o := applyOptions(opts)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	ua := o.userAgent
+	if ua == "" {
+		ua = DefaultUserAgent
+	}
+	req.Header.Set("User-Agent", ua)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	if resp.Body != nil {
 		defer resp.Body.Close()
 	}
-	return NewSliceFromResponse[T](resp)
+	return NewSliceFromResponse[T](resp, opts...)
 }
 
 type feeder[T any] struct {

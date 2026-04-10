@@ -20,6 +20,7 @@ type Page struct {
 	Tables []*Table
 
 	ctx      context.Context
+	opts     options
 	rowSpans []int
 	colSpans []int
 	row      []string
@@ -35,21 +36,21 @@ type Page struct {
 }
 
 // New returns an instance of the page with possibly more than one table
-func New(ctx context.Context, r io.Reader) (*Page, error) {
-	p := &Page{ctx: ctx}
+func New(ctx context.Context, r io.Reader, opts ...Option) (*Page, error) {
+	p := &Page{ctx: ctx, opts: applyOptions(opts)}
 	return p, p.init(r)
 }
 
 // NewFromString is same as New(ctx.Context, io.Reader), but from string
-func NewFromString(r string) (*Page, error) {
-	return New(context.Background(), strings.NewReader(r))
+func NewFromString(r string, opts ...Option) (*Page, error) {
+	return New(context.Background(), strings.NewReader(r), opts...)
 }
 
 // NewFromResponse is same as New(ctx.Context, io.Reader), but from http.Response.
 //
 // In case of failure, returns `ResponseError`, that could be further inspected.
-func NewFromResponse(resp *http.Response) (*Page, error) {
-	p, err := New(resp.Request.Context(), resp.Body)
+func NewFromResponse(resp *http.Response, opts ...Option) (*Page, error) {
+	p, err := New(resp.Request.Context(), resp.Body, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -59,15 +60,25 @@ func NewFromResponse(resp *http.Response) (*Page, error) {
 // NewFromURL is same as New(ctx.Context, io.Reader), but from URL.
 //
 // In case of failure, returns `ResponseError`, that could be further inspected.
-func NewFromURL(url string) (*Page, error) {
-	resp, err := http.Get(url)
+func NewFromURL(url string, opts ...Option) (*Page, error) {
+	o := applyOptions(opts)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	ua := o.userAgent
+	if ua == "" {
+		ua = DefaultUserAgent
+	}
+	req.Header.Set("User-Agent", ua)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	if resp.Body != nil {
 		defer resp.Body.Close()
 	}
-	return NewFromResponse(resp)
+	return NewFromResponse(resp, opts...)
 }
 
 // Len returns number of tables found on the page
@@ -203,8 +214,14 @@ func (p *Page) parse(n *html.Node) {
 		p.colSpan = append(p.colSpan, p.intAttrOr(n, "colspan", 1))
 		p.rowSpan = append(p.rowSpan, p.intAttrOr(n, "rowspan", 1))
 		var sb strings.Builder
-		p.innerText(n, &sb)
-		p.row = append(p.row, sb.String())
+		// Only retain inner HTML on td elements.  th elements need to be properly
+		// stripped for header struct reflection
+		if p.opts.innerHTML && n.Data == "td" {
+			p.innerHTML(n, &sb)
+		} else {
+			p.innerText(n, &sb)
+		}
+		p.row = append(p.row, strings.TrimSpace(sb.String()))
 		return
 	case "tr":
 		p.finishRow()
@@ -374,11 +391,21 @@ func (p *Page) innerText(n *html.Node, sb *strings.Builder) {
 		sb.WriteString(strings.TrimSpace(n.Data))
 		return
 	}
-	if n.FirstChild == nil {
+	if n.Type != html.ElementNode {
+		return
+	}
+	switch n.Data {
+	case "script", "style", "head":
 		return
 	}
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
 		p.innerText(c, sb)
+	}
+}
+
+func (p *Page) innerHTML(n *html.Node, sb *strings.Builder) {
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		html.Render(sb, c)
 	}
 }
 
