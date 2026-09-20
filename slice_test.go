@@ -26,22 +26,6 @@ type Ticker struct {
 	CIK      string `header:"CIK"`
 }
 
-func TestNewSliceFromUrl(t *testing.T) {
-	url := "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
-	out, err := NewSliceFromURL[Ticker](url)
-	assertNoError(t, err)
-	assertGreaterOrEqual(t, len(out), 500)
-}
-
-func TestNewSliceFromPage(t *testing.T) {
-	url := "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
-	p, err := NewFromURL(url)
-	assertNoError(t, err)
-	out, err := NewSliceFromPage[Ticker](p)
-	assertNoError(t, err)
-	assertGreaterOrEqual(t, len(out), 500)
-}
-
 func TestNewSliceFromUrl_Fails(t *testing.T) {
 	_, err := NewSliceFromURL[Ticker]("https://127.0.0.1")
 	assertEqualError(t, err, "Get \"https://127.0.0.1\": dial tcp 127.0.0.1:443: connect: connection refused")

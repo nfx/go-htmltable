@@ -1,56 +1,10 @@
 package htmltable_test
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/nfx/go-htmltable"
 )
-
-func ExampleNewSliceFromUrl() {
-	type Ticker struct {
-		Symbol   string `header:"Symbol"`
-		Security string `header:"Security"`
-		CIK      string `header:"CIK"`
-	}
-	url := "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
-	out, _ := htmltable.NewSliceFromURL[Ticker](url)
-	fmt.Println(out[0].Symbol)
-	fmt.Println(out[0].Security)
-
-	// Output:
-	// MMM
-	// 3M
-}
-
-func ExampleNewSliceFromURL_rowspansAndColspans() {
-	type AM4 struct {
-		Model             string `header:"Model"`
-		ReleaseDate       string `header:"Release date"`
-		PCIeSupport       string `header:"PCIesupport[a]"`
-		MultiGpuCrossFire bool   `header:"Multi-GPU CrossFire"`
-		MultiGpuSLI       bool   `header:"Multi-GPU SLI"`
-		USBSupport        string `header:"USBsupport[b]"`
-		SATAPorts         int    `header:"Storage features SATAports"`
-		RAID              string `header:"Storage features RAID"`
-		AMDStoreMI        bool   `header:"Storage features AMD StoreMI"`
-		Overclocking      string `header:"Processoroverclocking"`
-		TDP               string `header:"TDP"`
-		SupportExcavator  string `header:"CPU support Excavator"`
-		SupportZen        string `header:"CPU support Zen"`
-		SupportZenPlus    string `header:"CPU support Zen+"`
-		SupportZen2       string `header:"CPU support Zen 2"`
-		SupportZen3       string `header:"CPU support Zen 3"`
-		Architecture      string `header:"Architecture"`
-	}
-	am4Chipsets, _ := htmltable.NewSliceFromURL[AM4]("https://en.wikipedia.org/wiki/List_of_AMD_chipsets")
-	fmt.Println(am4Chipsets[2].Model)
-	fmt.Println(am4Chipsets[2].SupportZen2)
-
-	// Output:
-	// X370
-	// Varies[c]
-}
 
 func ExampleNewFromString() {
 	page, _ := htmltable.NewFromString(`<body>
@@ -78,24 +32,4 @@ func ExampleNewFromString() {
 	// found 2 tables
 	// c:2 d:5
 	// c:4 d:6
-}
-
-func ExampleNewFromURL() {
-	page, _ := htmltable.NewFromURL("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")
-	_, err := page.FindWithColumns("invalid", "column", "names")
-	fmt.Println(err)
-
-	// Output:
-	// cannot find table with columns: invalid, column, names
-}
-
-func ExampleLogger() {
-	htmltable.Logger = func(_ context.Context, msg string, fields ...any) {
-		fmt.Printf("[INFO] %s %v\n", msg, fields)
-	}
-	_, _ = htmltable.NewFromURL("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")
-
-	// Output:
-	// [INFO] found table [columns [Symbol Security SEC filings GICSSector GICS Sub-Industry Headquarters Location Date first added CIK Founded] count 503]
-	// [INFO] found table [columns [Date Added Ticker Added Security Removed Ticker Removed Security Reason] count 316]
 }

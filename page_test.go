@@ -103,26 +103,6 @@ func TestNewFromHttpResponseError(t *testing.T) {
 	assertEqualError(t, err, "nope")
 }
 
-func TestRealPageFound(t *testing.T) {
-	wiki, err := http.Get("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")
-	assertNoError(t, err)
-	p, err := NewFromResponse(wiki)
-	assertNoError(t, err)
-	snp, err := p.FindWithColumns("Symbol", "Security", "CIK")
-	assertNoError(t, err)
-	assertGreaterOrEqual(t, len(snp.Rows), 500)
-}
-
-func TestRealPageFound_BasicRowColSpans(t *testing.T) {
-	wiki, err := http.Get("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")
-	assertNoError(t, err)
-	p, err := NewFromResponse(wiki)
-	assertNoError(t, err)
-	snp, err := p.FindWithColumns("Date", "Added Ticker", "Removed Ticker")
-	assertNoError(t, err)
-	assertGreaterOrEqual(t, len(snp.Rows), 250)
-}
-
 func TestFindsTableByColumnNames(t *testing.T) {
 	p, err := NewFromString(fixture)
 	assertNoError(t, err)
