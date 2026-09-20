@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        goVersion: [ '1.18.x', '1.19.x' ]
+        goVersion: [ '1.27', '1.26' ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -19,7 +19,6 @@ jobs:
       - uses: actions/setup-go@v1
         with:
           go-version: ${{ matrix.goVersion }}
-      - run: go mod vendor
       - run: make test
       - uses: codecov/codecov-action@v1
         if: always()
