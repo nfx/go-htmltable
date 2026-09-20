@@ -6,7 +6,7 @@
 [![build](https://github.com/nfx/go-htmltable/workflows/build/badge.svg?branch=main)](https://github.com/nfx/go-htmltable/actions?query=workflow%3Abuild+branch%3Amain)
 
 
-`htmltable` enables structured data extraction from HTML tables and URLs and requires almost no external dependencies. Tested with Go 1.18.x and 1.19.x.
+`htmltable` enables structured data extraction from HTML tables and URLs and requires almost no external dependencies.
 
 ## Installation
 
@@ -72,6 +72,21 @@ _ = page.Each2("c", "d", func(c, d string) error {
 
 // Output: 
 // found 2 tables
+// c:2 d:5
+// c:4 d:6
+```
+
+You can also range over rows with `Iter`, which yields values in the order of the requested columns:
+
+```go
+for row, err := range page.Iter("c", "d") {
+    if err != nil {
+        panic(err)
+    }
+    fmt.Printf("c:%s d:%s\n", row[0], row[1])
+}
+
+// Output: 
 // c:2 d:5
 // c:4 d:6
 ```
