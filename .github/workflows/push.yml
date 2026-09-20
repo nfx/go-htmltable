@@ -14,11 +14,11 @@ jobs:
         goVersion: [ '1.27', '1.26' ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - run: git fetch --prune --unshallow
-      - uses: actions/setup-go@v1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
         with:
           go-version: ${{ matrix.goVersion }}
       - run: make test
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5
         if: always()
