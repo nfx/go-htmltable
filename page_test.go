@@ -196,6 +196,39 @@ func TestEach3FailsNoCols(t *testing.T) {
 	assertEqualError(t, err, "cannot find table with columns: x, y, z")
 }
 
+func TestIter(t *testing.T) {
+	p, err := NewFromString(fixture)
+	assertNoError(t, err)
+	var got [][]string
+	for row, err := range p.Iter("c", "d") {
+		assertNoError(t, err)
+		got = append(got, row)
+	}
+	assertEqual(t, [][]string{{"2", "5"}, {"4", "6"}}, got)
+}
+
+func TestIterFailsNoCols(t *testing.T) {
+	p, err := NewFromString(fixture)
+	assertNoError(t, err)
+	count := 0
+	for _, err := range p.Iter("x", "y") {
+		count++
+		assertEqualError(t, err, "cannot find table with columns: x, y")
+	}
+	assertEqual(t, 1, count)
+}
+
+func TestIterStopsEarly(t *testing.T) {
+	p, err := NewFromString(fixture)
+	assertNoError(t, err)
+	count := 0
+	for range p.Iter("c", "d") {
+		count++
+		break
+	}
+	assertEqual(t, 1, count)
+}
+
 func TestMoreThanOneTableFoundErrors(t *testing.T) {
 	p, err := NewFromString(fixture)
 	assertNoError(t, err)

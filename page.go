@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"iter"
 	"net/http"
 	"strconv"
 	"strings"
@@ -182,6 +183,35 @@ func (p *Page) Each3(a, b, c string, f func(a, b, c string) error) error {
 		}
 	}
 	return nil
+}
+
+// Iter returns an iterator over rows of the first table that has all the
+// specified columns. Each row holds values in the order of the columns
+// argument. If no table matches, the iterator yields a single error.
+func (p *Page) Iter(columns ...string) iter.Seq2[[]string, error] {
+	return func(yield func([]string, error) bool) {
+		table, err := p.FindWithColumns(columns...)
+		if err != nil {
+			yield(nil, err)
+			return
+		}
+		offsets := map[string]int{}
+		for idx, header := range table.Header {
+			offsets[header] = idx
+		}
+		for _, row := range table.Rows {
+			if len(row) < len(columns) {
+				continue
+			}
+			res := make([]string, len(columns))
+			for i, col := range columns {
+				res[i] = row[offsets[col]]
+			}
+			if !yield(res, nil) {
+				return
+			}
+		}
+	}
 }
 
 func (p *Page) init(r io.Reader) error {
